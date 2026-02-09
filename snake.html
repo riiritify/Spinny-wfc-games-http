@@ -1,0 +1,143 @@
+<html>
+  <head>
+    <title>Snake - SpinnyHTTP</title>
+  </head>
+
+  <body bgcolor="#FFFFFF" text="#000000">
+    <center>
+      <h1>Snake</h1>
+      <p>Hosted on spinnyhttp.mywire.org</p>
+
+      <hr width="80%">
+
+      <table border="1" cellspacing="0" cellpadding="4" id="board"></table>
+
+      <br>
+
+      <form>
+        <input type="button" value="Up" onclick="setDir('UP')"><br><br>
+        <input type="button" value="Left" onclick="setDir('LEFT')">
+        <input type="button" value="Right" onclick="setDir('RIGHT')"><br><br>
+        <input type="button" value="Down" onclick="setDir('DOWN')"><br><br>
+        <input type="button" value="Restart" onclick="restart()">
+      </form>
+
+      <h3 id="status"></h3>
+
+      <hr width="80%">
+      <p><a href="index.html">Back to Main Game</a></p>
+    </center>
+
+    <script>
+      var size = 15;
+      var board = [];
+      var snake = [];
+      var dir = "RIGHT";
+      var food = null;
+      var gameLoop = null;
+
+      function makeBoard() {
+        var table = document.getElementById("board");
+        table.innerHTML = "";
+        board = [];
+
+        for (var y = 0; y < size; y++) {
+          var row = [];
+          var tr = document.createElement("tr");
+
+          for (var x = 0; x < size; x++) {
+            var td = document.createElement("td");
+            td.width = 20;
+            td.height = 20;
+            td.id = "c" + x + "_" + y;
+            tr.appendChild(td);
+            row.push(td);
+          }
+
+          table.appendChild(tr);
+          board.push(row);
+        }
+      }
+
+      function restart() {
+        snake = [{x: 7, y: 7}];
+        dir = "RIGHT";
+        placeFood();
+        updateBoard();
+
+        if (gameLoop) {
+          clearInterval(gameLoop);
+        }
+
+        gameLoop = setInterval(tick, 400);
+        document.getElementById("status").innerHTML = "";
+      }
+
+      function placeFood() {
+        var fx = Math.floor(Math.random() * size);
+        var fy = Math.floor(Math.random() * size);
+        food = {x: fx, y: fy};
+      }
+
+      function setDir(d) {
+        dir = d;
+      }
+
+      function tick() {
+        var head = snake[0];
+        var nx = head.x;
+        var ny = head.y;
+
+        if (dir == "UP") ny--;
+        if (dir == "DOWN") ny++;
+        if (dir == "LEFT") nx--;
+        if (dir == "RIGHT") nx++;
+
+        if (nx < 0 || nx >= size || ny < 0 || ny >= size) {
+          gameOver();
+          return;
+        }
+
+        for (var i = 0; i < snake.length; i++) {
+          if (snake[i].x == nx && snake[i].y == ny) {
+            gameOver();
+            return;
+          }
+        }
+
+        snake.unshift({x: nx, y: ny});
+
+        if (nx == food.x && ny == food.y) {
+          placeFood();
+        } else {
+          snake.pop();
+        }
+
+        updateBoard();
+      }
+
+      function updateBoard() {
+        for (var y = 0; y < size; y++) {
+          for (var x = 0; x < size; x++) {
+            board[y][x].bgColor = "#FFFFFF";
+          }
+        }
+
+        for (var i = 0; i < snake.length; i++) {
+          var s = snake[i];
+          board[s.y][s.x].bgColor = "#00AA00";
+        }
+
+        board[food.y][food.x].bgColor = "#FF0000";
+      }
+
+      function gameOver() {
+        clearInterval(gameLoop);
+        document.getElementById("status").innerHTML = "Game Over!";
+      }
+
+      makeBoard();
+      restart();
+    </script>
+  </body>
+</html>
