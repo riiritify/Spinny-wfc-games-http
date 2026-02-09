@@ -1,0 +1,72 @@
+<html>
+  <head>
+    <title>Repeat the Pattern - SpinnyHTTP</title>
+  </head>
+
+  <body bgcolor="#FFFFFF" text="#000000">
+    <center>
+      <h1>Repeat the Pattern</h1>
+      <p>Hosted on spinnyhttp.mywire.org</p>
+
+      <hr width="80%">
+
+      <h3>Pattern:</h3>
+      <h2 id="pattern">(press Start)</h2>
+
+      <h3>Your Input:</h3>
+      <h2 id="input">---</h2>
+
+      <form>
+        <input type="button" value="Start New Pattern" onclick="startPattern()"><br><br>
+
+        <input type="button" value="A" onclick="pressButton('A')">
+        <input type="button" value="B" onclick="pressButton('B')">
+        <input type="button" value="C" onclick="pressButton('C')">
+        <input type="button" value="D" onclick="pressButton('D')">
+      </form>
+
+      <h3 id="result"></h3>
+
+      <hr width="80%">
+
+      <p><a href="index.html">Back to Main Game</a></p>
+    </center>
+
+    <script>
+      var pattern = "";
+      var input = "";
+
+      function startPattern() {
+        var letters = ["A", "B", "C", "D"];
+        pattern = "";
+
+        for (var i = 0; i < 4; i++) {
+          var pick = Math.floor(Math.random() * 4);
+          pattern = pattern + letters[pick];
+        }
+
+        input = "";
+        document.getElementById("pattern").innerHTML = pattern;
+        document.getElementById("input").innerHTML = "---";
+        document.getElementById("result").innerHTML = "";
+      }
+
+      function pressButton(letter) {
+        if (pattern == "") {
+          return;
+        }
+
+        input = input + letter;
+        document.getElementById("input").innerHTML = input;
+
+        if (input.length == pattern.length) {
+          if (input == pattern) {
+            document.getElementById("result").innerHTML = "Correct!";
+          } else {
+            document.getElementById("result").innerHTML = "Incorrect!";
+          }
+        }
+      }
+    </script>
+  </body>
+</html>
