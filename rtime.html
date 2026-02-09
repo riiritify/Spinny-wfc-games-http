@@ -1,0 +1,77 @@
+<html>
+  <head>
+    <title>Reaction Time Test - SpinnyHTTP</title>
+  </head>
+
+  <body bgcolor="#FFFFFF" text="#000000">
+    <center>
+      <h1>Reaction Time Test</h1>
+      <p>Hosted on spinnyhttp.mywire.org</p>
+
+      <hr width="80%">
+
+      <p id="message">Press "Start" and wait for GREEN.</p>
+
+      <h2 id="result">---</h2>
+
+      <form>
+        <input type="button" value="Start" onclick="startTest()"><br><br>
+        <input type="button" value="Tap!" onclick="tap()">
+      </form>
+
+      <hr width="80%">
+      <p><a href="index.html">Back to Main Game</a></p>
+    </center>
+
+    <script>
+      var waiting = false;
+      var ready = false;
+      var startTime = 0;
+      var timeoutId = null;
+
+      function startTest() {
+        if (timeoutId) {
+          clearTimeout(timeoutId);
+        }
+
+        waiting = true;
+        ready = false;
+        document.bgColor = "#FFFFFF";
+        document.getElementById("message").innerHTML = "Wait for GREEN...";
+        document.getElementById("result").innerHTML = "---";
+
+        var delay = 1000 + Math.floor(Math.random() * 4000);
+
+        timeoutId = setTimeout(goGreen, delay);
+      }
+
+      function goGreen() {
+        if (!waiting) return;
+        ready = true;
+        waiting = false;
+        startTime = new Date().getTime();
+        document.bgColor = "#00FF00";
+        document.getElementById("message").innerHTML = "TAP NOW!";
+      }
+
+      function tap() {
+        var now = new Date().getTime();
+
+        if (ready) {
+          var rt = now - startTime;
+          document.bgColor = "#FFFFFF";
+          document.getElementById("result").innerHTML = "Reaction Time: " + rt + " ms";
+          document.getElementById("message").innerHTML = "Press Start to try again.";
+          ready = false;
+        } else if (waiting) {
+          document.bgColor = "#FF0000";
+          document.getElementById("message").innerHTML = "Too early! Press Start to try again.";
+          document.getElementById("result").innerHTML = "---";
+          waiting = false;
+        } else {
+          // Do nothing if test isn't running
+        }
+      }
+    </script>
+  </body>
+</html>
