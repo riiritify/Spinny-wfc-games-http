@@ -1,1 +1,48 @@
-<html>test test</html>
+<html>
+  <head>
+    <title>SpinnyHTTP Mini Game</title>
+  </head>
+
+  <body bgcolor="#FFFFFF" text="#000000">
+    <center>
+      <h1>SpinnyHTTP Score Counter</h1>
+      <p>Welcome to the retro mini-game hosted on spinnyhttp.mywire.org</p>
+
+      <hr width="80%">
+
+      <h2>Your Score:</h2>
+      <h1 id="score">0</h1>
+
+      <form>
+        <input type="button" value="Increase Score" onclick="addScore()">
+        <input type="button" value="Reset" onclick="resetScore()">
+      </form>
+
+      <hr width="80%">
+
+      <p>
+        This game is designed to work on the Nintendo DS, DSi, and Wii browsers.
+        No fancy scripts. No modern features. Just pure 2006 web energy.
+      </p>
+
+      <p>
+        <a href="index.html">Refresh Page</a>
+      </p>
+    </center>
+
+    <script>
+      var score = 0;
+
+      function addScore() {
+        score = score + 1;
+        document.getElementById("score").innerHTML = score;
+      }
+
+      function resetScore() {
+        score = 0;
+        document.getElementById("score").innerHTML = score;
+      }
+    </script>
+  </body>
+</html>
+
