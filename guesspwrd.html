@@ -1,0 +1,45 @@
+<html>
+  <head>
+    <title>Guess the Password - SpinnyHTTP</title>
+  </head>
+
+  <body bgcolor="#FFFFFF" text="#000000">
+    <center>
+      <h1>Guess the Password</h1>
+      <p>The password changes every time you refresh the page.</p>
+
+      <hr width="80%">
+
+      <form onsubmit="return checkPass()">
+        Enter your guess:<br>
+        <input id="guess"><br><br>
+        <input type="submit" value="Submit Guess">
+      </form>
+
+      <h3 id="result"></h3>
+
+      <hr width="80%">
+      <p><a href="index.html">Back to Main Game</a></p>
+    </center>
+
+    <script>
+      // Generate a random 4‑digit password each refresh
+      var password = "";
+      for (var i = 0; i < 4; i++) {
+        password += Math.floor(Math.random() * 10);
+      }
+
+      function checkPass() {
+        var g = document.getElementById("guess").value;
+
+        if (g == password) {
+          document.getElementById("result").innerHTML = "Correct! The password was " + password;
+        } else {
+          document.getElementById("result").innerHTML = "Wrong! Try again.";
+        }
+
+        return false;
+      }
+    </script>
+  </body>
+</html>
