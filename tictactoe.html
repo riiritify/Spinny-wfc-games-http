@@ -1,0 +1,104 @@
+<html>
+  <head>
+    <title>Tic Tac Toe - SpinnyHTTP</title>
+  </head>
+
+  <body bgcolor="#FFFFFF" text="#000000">
+    <center>
+      <h1>Tic Tac Toe</h1>
+      <p>Hosted on spinnyhttp.mywire.org</p>
+
+      <hr width="80%">
+
+      <table border="1" cellspacing="0" cellpadding="20">
+        <tr>
+          <td id="c0" onclick="play(0)"></td>
+          <td id="c1" onclick="play(1)"></td>
+          <td id="c2" onclick="play(2)"></td>
+        </tr>
+        <tr>
+          <td id="c3" onclick="play(3)"></td>
+          <td id="c4" onclick="play(4)"></td>
+          <td id="c5" onclick="play(5)"></td>
+        </tr>
+        <tr>
+          <td id="c6" onclick="play(6)"></td>
+          <td id="c7" onclick="play(7)"></td>
+          <td id="c8" onclick="play(8)"></td>
+        </tr>
+      </table>
+
+      <br>
+
+      <form>
+        <input type="button" value="Restart Game" onclick="restart()">
+      </form>
+
+      <h3 id="status"></h3>
+
+      <hr width="80%">
+      <p><a href="index.html">Back to Main Game</a></p>
+    </center>
+
+    <script>
+      var board = ["", "", "", "", "", "", "", "", ""];
+      var turn = "X";
+      var gameOver = false;
+
+      function play(i) {
+        if (gameOver) return;
+        if (board[i] != "") return;
+
+        board[i] = turn;
+        document.getElementById("c" + i).innerHTML = turn;
+
+        if (checkWin(turn)) {
+          document.getElementById("status").innerHTML = turn + " wins!";
+          gameOver = true;
+          return;
+        }
+
+        if (isFull()) {
+          document.getElementById("status").innerHTML = "Draw!";
+          gameOver = true;
+          return;
+        }
+
+        turn = (turn == "X") ? "O" : "X";
+      }
+
+      function checkWin(p) {
+        var w = [
+          [0,1,2],[3,4,5],[6,7,8],
+          [0,3,6],[1,4,7],[2,5,8],
+          [0,4,8],[2,4,6]
+        ];
+
+        for (var i = 0; i < w.length; i++) {
+          var a = w[i][0], b = w[i][1], c = w[i][2];
+          if (board[a] == p && board[b] == p && board[c] == p) return true;
+        }
+        return false;
+      }
+
+      function isFull() {
+        for (var i = 0; i < 9; i++) {
+          if (board[i] == "") return false;
+        }
+        return true;
+      }
+
+      function restart() {
+        board = ["", "", "", "", "", "", "", "", ""];
+        turn = "X";
+        gameOver = false;
+
+        for (var i = 0; i < 9; i++) {
+          document.getElementById("c" + i).innerHTML = "";
+        }
+
+        document.getElementById("status").innerHTML = "";
+      }
+    </script>
+  </body>
+</html>
