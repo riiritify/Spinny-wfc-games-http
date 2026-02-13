@@ -411,11 +411,11 @@ class Fighter {
             this.handleAI(opponent);
         }
 
-        // ⭐ ADDED — network-controlled fighter
-        else if (this.name === "p2" && myRole === "p1") {
-            this.applyNetworkInput(opponentKeys);
-        }
-        else if (this.name === "p1" && myRole === "p2") {
+        // ⭐ FIXED — opponent uses network input, YOU use local input
+        else if (
+            (this.name === "p2" && myRole === "p1") ||
+            (this.name === "p1" && myRole === "p2")
+        ) {
             this.applyNetworkInput(opponentKeys);
         }
 
@@ -617,6 +617,7 @@ function logout() {
     alert("Disconnected from SpinnyWFC");
 }
 </script>
+
 
 </body>
 </html>
