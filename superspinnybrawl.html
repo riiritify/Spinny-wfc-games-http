@@ -213,6 +213,10 @@
 
   const socket = new WebSocket("wss://superspinnybrawlserver.onrender.com");
 
+  // ⭐ ADDED — role + opponent keys
+  let myRole = null;
+  let opponentKeys = { w:false, a:false, d:false, attack:false };
+
   socket.onopen = () => {
     console.log("Connected to server");
   };
@@ -220,20 +224,42 @@
   socket.onmessage = (event) => {
     console.log("Received:", event.data);
 
-    // ⭐ ADDED — react to match_found
+    // ⭐ MATCH FOUND
     if (event.data === "match_found") {
-      // update the quick match button text if present
       const btn = document.querySelector('button[onclick="quickMatch()"]');
       if (btn) btn.textContent = "MATCH FOUND!";
+      return;
+    }
+
+    // ⭐ ADDED — JSON messages
+    try {
+      const data = JSON.parse(event.data);
+
+      // ⭐ ADDED — server assigns role
+      if (data.type === "role") {
+        myRole = data.role;
+        console.log("Assigned role:", myRole);
+      }
+
+      // ⭐ ADDED — opponent input arrives
+      if (data.type === "opponent_input") {
+        opponentKeys = data.keys;
+      }
+
+      // ⭐ ADDED — opponent disconnected
+      if (data.type === "opponent_disconnect") {
+        alert("Opponent disconnected");
+        location.reload();
+      }
+
+    } catch (e) {
+      // ignore non‑JSON
     }
   };
 
   // ⭐ Your REAL Quick Match function (kept exactly as-is)
 function quickMatch() {
-  // change the button text
   document.querySelector('button[onclick="quickMatch()"]').textContent = "SEARCHING...";
-
-  // send quick match request to server
   socket.send("quick_match");
 }
 
@@ -347,10 +373,48 @@ class Fighter {
         this.attackCooldown = 0;
     }
 
+    // ⭐ ADDED — apply opponent network input
+    applyNetworkInput(k) {
+        if (k.a) {
+            this.vx = -5.5;
+            this.dir = -1;
+        } else if (k.d) {
+            this.vx = 5.5;
+            this.dir = 1;
+        } else {
+            this.vx *= 0.88;
+        }
+
+        if (k.w) {
+            if (this.canJump && this.jumpCount < this.maxJumps) {
+                this.vy = -13;
+                this.jumpCount++;
+                this.canJump = false;
+            }
+        } else {
+            this.canJump = true;
+        }
+
+        if (k.attack) {
+            this.performAttack(p1 === this ? p2 : p1);
+        }
+    }
+
     update(keys, opponent) {
         if (!gameRunning || isPaused) return;
 
-        if (this.isBot) this.handleAI(opponent);
+        if (this.isBot) {
+            this.handleAI(opponent);
+        }
+
+        // ⭐ ADDED — network-controlled fighter
+        else if (this.name === "p2" && myRole === "p1") {
+            this.applyNetworkInput(opponentKeys);
+        }
+        else if (this.name === "p1" && myRole === "p2") {
+            this.applyNetworkInput(opponentKeys);
+        }
+
         else {
             if (keys[this.controls.left]) {
                 this.vx = -5.5;
@@ -479,7 +543,28 @@ window.onkeydown = (e) => {
 };
 window.onkeyup = (e) => keys[e.key] = false;
 
+// ⭐ ADDED — send inputs every frame
+function sendInputs() {
+    if (!myRole) return;
+
+    const keysToSend = {
+        w: keys["w"] || keys["ArrowUp"],
+        a: keys["a"] || keys["ArrowLeft"],
+        d: keys["d"] || keys["ArrowRight"],
+        attack: keys[" "] || keys["Enter"]
+    };
+
+    socket.send(JSON.stringify({
+        type: "input",
+        keys: keysToSend
+    }));
+}
+
 function loop() {
+
+    // ⭐ ADDED — send inputs at start of frame
+    sendInputs();
+
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.fillStyle = "#002211";
     ctx.fillRect(200, 400, 500, 15);
