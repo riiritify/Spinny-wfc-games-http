@@ -221,19 +221,45 @@
     console.log("Connected to server");
   };
 
-  socket.onmessage = (event) => {
-    console.log("Received:", event.data);
+socket.onmessage = (event) => {
+  console.log("Received:", event.data);
 
-    // ⭐ MATCH FOUND
-    if (event.data === "match_found") {
-      const btn = document.querySelector('button[onclick="quickMatch()"]');
-      if (btn) btn.textContent = "MATCH FOUND!";
+  let data;
+  try { data = JSON.parse(event.data); }
+  catch { data = null; }
 
-      // ⭐⭐⭐ REQUIRED FIX — START ONLINE MATCH ⭐⭐⭐
-      preStart(false);
+  // ROLE ASSIGNED — START MATCH HERE
+  if (data && data.type === "role") {
+    myRole = data.role;
+    console.log("Assigned role:", myRole);
 
-      return;
-    }
+    preStart(false);
+    return;
+  }
+
+  // OPPONENT INPUT
+  if (data && data.type === "opponent_input") {
+    opponentKeys = data.keys;
+    return;
+  }
+
+  // OPPONENT DISCONNECTED
+  if (data && data.type === "opponent_disconnect") {
+    alert("Opponent disconnected");
+    location.reload();
+    return;
+  }
+
+  // MATCH FOUND — ONLY UPDATE BUTTON
+  if (event.data === "match_found") {
+    const btn = document.querySelector('button[onclick="quickMatch()"]');
+    if (btn) btn.textContent = "MATCH FOUND!";
+    return;
+  }
+};
+
+
+
 
     // ⭐ ADDED — JSON messages
     try {
