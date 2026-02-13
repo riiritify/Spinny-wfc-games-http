@@ -228,6 +228,10 @@
     if (event.data === "match_found") {
       const btn = document.querySelector('button[onclick="quickMatch()"]');
       if (btn) btn.textContent = "MATCH FOUND!";
+
+      // ⭐⭐⭐ REQUIRED FIX — START ONLINE MATCH ⭐⭐⭐
+      preStart(false);
+
       return;
     }
 
@@ -613,5 +617,6 @@ function logout() {
     alert("Disconnected from SpinnyWFC");
 }
 </script>
+
 </body>
 </html>
