@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Spinny Kart 9</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #050816;
+      color: #f5f5f5;
+      font-family: system-ui, -apple-system, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      min-height: 100vh;
+      padding: 16px;
+    }
+    h1 {
+      font-size: 28px;
+      margin-bottom: 8px;
+      text-align: center;
+    }
+    h2 {
+      font-size: 18px;
+      margin: 8px 0 4px;
+    }
+    #menu, #hud {
+      width: 100%;
+      max-width: 480px;
+    }
+    #menu {
+      background: #111827;
+      border-radius: 12px;
+      padding: 12px;
+      margin-bottom: 12px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.4);
+    }
+    .row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 8px;
+      flex-wrap: wrap;
+    }
+    label {
+      font-size: 14px;
+    }
+    select {
+      flex: 1;
+      padding: 6px 8px;
+      border-radius: 8px;
+      border: none;
+      background: #020617;
+      color: #e5e7eb;
+      font-size: 14px;
+    }
+    button {
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: none;
+      background: #22c55e;
+      color: #022c22;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    button:disabled {
+      background: #4b5563;
+      color: #9ca3af;
+      cursor: default;
+    }
+    #status {
+      font-size: 12px;
+      color: #9ca3af;
+      margin-top: 4px;
+    }
+    #gameWrapper {
+      width: 100%;
+      max-width: 480px;
+      background: #020617;
+      border-radius: 12px;
+      padding: 8px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.4);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+    canvas {
+      background: #0f172a;
+      border-radius: 8px;
+      width: 100%;
+      height: auto;
+      image-rendering: pixelated;
+    }
+    #hud {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: #e5e7eb;
+    }
+    #touchControls {
+      margin-top: 6px;
+      display: flex;
+      justify-content: space-between;
+      width: 100%;
+      max-width: 480px;
+      gap: 8px;
+      user-select: none;
+    }
+    .touch-group {
+      display: flex;
+      gap: 6px;
+    }
+    .touch-btn {
+      width: 56px;
+      height: 56px;
+      border-radius: 999px;
+      background: #111827;
+      border: 2px solid #4b5563;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #e5e7eb;
+      font-weight: 700;
+      font-size: 18px;
+      touch-action: none;
+    }
+    .touch-btn:active {
+      background: #22c55e;
+      color: #022c22;
+      border-color: #22c55e;
+    }
+    #help {
+      margin-top: 8px;
+      font-size: 11px;
+      color: #9ca3af;
+      text-align: center;
+      max-width: 480px;
+      line-height: 1.4;
+    }
+  </style>
+</head>
+<body>
+  <h1>Spinny Kart 9</h1>
+
+  <div id="menu">
+    <h2>Race Setup</h2>
+    <div class="row">
+      <label for="character">Character:</label>
+      <select id="character">
+        <option value="spinny">Spinny</option>
+        <option value="blocky">Blocky</option>
+        <option value="ghosty">Ghosty</option>
+        <option value="noodle">Noodle</option>
+      </select>
+    </div>
+    <div class="row">
+      <label for="map">Map:</label>
+      <select id="map">
+        <option value="oval">Oval Circuit</option>
+        <option value="figure8">Figure‑8 Chaos</option>
+        <option value="zigzag">Zigzag Alley</option>
+        <option value="void">The Void</option>
+      </select>
+    </div>
+    <div class="row" style="justify-content: space-between; align-items: center;">
+      <button id="startBtn">Start Race</button>
+      <span id="status">Waiting in the lobby…</span>
+    </div>
+  </div>
+
+  <div id="gameWrapper">
+    <canvas id="game" width="320" height="180"></canvas>
+    <div id="hud">
+      <span id="hudChar">Char: Spinny</span>
+      <span id="hudMap">Map: Oval Circuit</span>
+      <span id="hudSpeed">Speed: 0</span>
+    </div>
+  </div>
+
+  <div id="touchControls">
+    <div class="touch-group">
+      <div id="leftBtn" class="touch-btn">◀</div>
+      <div id="rightBtn" class="touch-btn">▶</div>
+    </div>
+    <div class="touch-group">
+      <div id="gasBtn" class="touch-btn">GO</div>
+      <div id="brakeBtn" class="touch-btn">■</div>
+    </div>
+  </div>
+
+  <div id="help">
+    Keyboard: WASD or Arrow Keys to steer, Space/Enter to accelerate, Shift/Control to brake.  
+    Touch: ◀ ▶ to steer, GO to accelerate, ■ to brake.
+  </div>
+
+  <script>
+    const canvas = document.getElementById("game");
+    const ctx = canvas.getContext("2d");
+
+    const characterSelect = document.getElementById("character");
+    const mapSelect = document.getElementById("map");
+    const startBtn = document.getElementById("startBtn");
+    const statusEl = document.getElementById("status");
+
+    const hudChar = document.getElementById("hudChar");
+    const hudMap = document.getElementById("hudMap");
+    const hudSpeed = document.getElementById("hudSpeed");
+
+    const keys = {
+      up: false,
+      down: false,
+      left: false,
+      right: false,
+      accelerate: false,
+      brake: false
+    };
+
+    const kart = {
+      x: canvas.width / 2,
+      y: canvas.height / 2,
+      angle: 0,
+      speed: 0,
+      maxSpeed: 3,
+      accel: 0.08,
+      brake: 0.15,
+      friction: 0.04,
+      turnSpeed: 0.05,
+      color: "#22c55e"
+    };
+
+    let currentMap = "oval";
+    let running = false;
+    let lastTime = 0;
+
+    const characterColors = {
+      spinny: "#22c55e",
+      blocky: "#3b82f6",
+      ghosty: "#e5e7eb",
+      noodle: "#f97316"
+    };
+
+    document.addEventListener("keydown", e => {
+      if (e.key === "ArrowUp" || e.key === "w") keys.up = true;
+      if (e.key === "ArrowDown" || e.key === "s") keys.down = true;
+      if (e.key === "ArrowLeft" || e.key === "a") keys.left = true;
+      if (e.key === "ArrowRight" || e.key === "d") keys.right = true;
+      if (e.key === " " || e.key === "Enter") keys.accelerate = true;
+      if (e.key === "Shift" || e.key === "Control") keys.brake = true;
+    });
+
+    document.addEventListener("keyup", e => {
+      if (e.key === "ArrowUp" || e.key === "w") keys.up = false;
+      if (e.key === "ArrowDown" || e.key === "s") keys.down = false;
+      if (e.key === "ArrowLeft" || e.key === "a") keys.left = false;
+      if (e.key === "ArrowRight" || e.key === "d") keys.right = false;
+      if (e.key === " " || e.key === "Enter") keys.accelerate = false;
+      if (e.key === "Shift" || e.key === "Control") keys.brake = false;
+    });
+
+    function bindTouchHold(id, keyName) {
+      const el = document.getElementById(id);
+      const start = e => {
+        e.preventDefault();
+        keys[keyName] = true;
+      };
+      const end = e => {
+        e.preventDefault();
+        keys[keyName] = false;
+      };
+      el.addEventListener("touchstart", start);
+      el.addEventListener("touchend", end);
+      el.addEventListener("touchcancel", end);
+      el.addEventListener("mousedown", start);
+      window.addEventListener("mouseup", end);
+    }
+
+    bindTouchHold("leftBtn", "left");
+    bindTouchHold("rightBtn", "right");
+    bindTouchHold("gasBtn", "accelerate");
+    bindTouchHold("brakeBtn", "brake");
+
+    function resetKart() {
+      kart.x = canvas.width / 2;
+      kart.y = canvas.height / 2;
+      kart.angle = -Math.PI / 2;
+      kart.speed = 0;
+    }
+
+    function startRace() {
+      const char = characterSelect.value;
+      const map = mapSelect.value;
+
+      kart.color = characterColors[char] || "#22c55e";
+      currentMap = map;
+      resetKart();
+
+      hudChar.textContent = "Char: " + characterSelect.options[characterSelect.selectedIndex].text;
+      hudMap.textContent = "Map: " + mapSelect.options[mapSelect.selectedIndex].text;
+
+      statusEl.textContent = "Racing…";
+      running = true;
+      startBtn.disabled = true;
+      lastTime = performance.now();
+      requestAnimationFrame(loop);
+    }
+
+    startBtn.addEventListener("click", () => {
+      startRace();
+    });
+
+    function update(dt) {
+      if (keys.accelerate || keys.up) {
+        kart.speed += kart.accel * dt;
+      } else if (keys.brake || keys.down) {
+        kart.speed -= kart.brake * dt;
+      } else {
+        if (kart.speed > 0) kart.speed -= kart.friction * dt;
+        if (kart.speed < 0) kart.speed += kart.friction * dt;
+      }
+
+      if (kart.speed > kart.maxSpeed) kart.speed = kart.maxSpeed;
+      if (kart.speed < -kart.maxSpeed * 0.5) kart.speed = -kart.maxSpeed * 0.5;
+      if (Math.abs(kart.speed) < 0.01) kart.speed = 0;
+
+      if (kart.speed !== 0) {
+        const dir = kart.speed > 0 ? 1 : -1;
+        if (keys.left) kart.angle -= kart.turnSpeed * dt * dir;
+        if (keys.right) kart.angle += kart.turnSpeed * dt * dir;
+      }
+
+      kart.x += Math.cos(kart.angle) * kart.speed * dt;
+      kart.y += Math.sin(kart.angle) * kart.speed * dt;
+
+      if (kart.x < 10) { kart.x = 10; kart.speed *= -0.4; }
+      if (kart.x > canvas.width - 10) { kart.x = canvas.width - 10; kart.speed *= -0.4; }
+      if (kart.y < 10) { kart.y = 10; kart.speed *= -0.4; }
+      if (kart.y > canvas.height - 10) { kart.y = canvas.height - 10; kart.speed *= -0.4; }
+
+      hudSpeed.textContent = "Speed: " + kart.speed.toFixed(2);
+    }
+
+    function drawTrack() {
+      ctx.save();
+      ctx.fillStyle = "#020617";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      ctx.strokeStyle = "#1f2937";
+      ctx.lineWidth = 18;
+      ctx.lineCap = "round";
+
+      if (currentMap === "oval") {
+        ctx.beginPath();
+        ctx.ellipse(canvas.width / 2, canvas.height / 2, 120, 60, 0, 0, Math.PI * 2);
+        ctx.stroke();
+      } else if (currentMap === "figure8") {
+        ctx.beginPath();
+        ctx.ellipse(canvas.width / 2 - 40, canvas.height / 2, 60, 40, 0, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.ellipse(canvas.width / 2 + 40, canvas.height / 2, 60, 40, 0, 0, Math.PI * 2);
+        ctx.stroke();
+      } else if (currentMap === "zigzag") {
+        ctx.beginPath();
+        ctx.moveTo(20, 20);
+        ctx.lineTo(canvas.width - 20, 50);
+        ctx.lineTo(20, 100);
+        ctx.lineTo(canvas.width - 20, 140);
+        ctx.stroke();
+      } else if (currentMap === "void") {
+        ctx.fillStyle = "#020617";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = "#111827";
+        for (let i = 0; i < 40; i++) {
+          const x = Math.random() * canvas.width;
+          const y = Math.random() * canvas.height;
+          ctx.fillRect(x, y, 2, 2);
+        }
+      }
+
+      ctx.restore();
+    }
+
+    function drawKart() {
+      ctx.save();
+      ctx.translate(kart.x, kart.y);
+      ctx.rotate(kart.angle);
+
+      ctx.fillStyle = kart.color;
+      ctx.fillRect(-8, -12, 16, 24);
+
+      ctx.fillStyle = "#0f172a";
+      ctx.fillRect(-6, -10, 12, 6);
+
+      ctx.fillStyle = "#e5e7eb";
+      ctx.fillRect(-4, -8, 8, 3);
+
+      ctx.restore();
+    }
+
+    function loop(timestamp) {
+      if (!running) return;
+      const dt = Math.min((timestamp - lastTime) / 16.67, 2);
+      lastTime = timestamp;
+
+      update(dt);
+      drawTrack();
+      drawKart();
+
+      requestAnimationFrame(loop);
+    }
+
+    drawTrack();
+    drawKart();
+  </script>
+</body>
+</html>
