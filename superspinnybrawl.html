@@ -629,7 +629,14 @@ async function connectSpinnyWFC() {
         });
 
         // TOKEN
-        const token = crypto.randomUUID().replace(/-/g, "").slice(0, 32);
+        function spinnyUUID() {
+    const arr = new Uint8Array(16);
+    crypto.getRandomValues(arr);
+    return Array.from(arr, b => b.toString(16).padStart(2, "0")).join("");
+}
+
+const token = spinnyUUID();
+
         const tokRes = await fetch(SPINNY_BASE + "/spinnyauth/spinnyfirewall/token", {
             method: "POST",
             headers: {"Content-Type": "application/x-www-form-urlencoded"},
