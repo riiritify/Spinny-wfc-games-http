@@ -646,8 +646,10 @@ const token = spinnyUUID();
         if (!tokText.includes("tokenaccepted")) throw new Error("token");
 
         // SERVER LIST
-        const srvRes = await fetch(SPINNY_BASE + "/getspinnywfcservers");
-        if (!srvRes.ok) throw new Error("servers");
+const srvRes = await fetch(SPINNY_BASE + "/getspinnywfcservers", {
+    method: "POST"
+});
+
 
         // SSL CHECK
         const sslRes = await fetch(SPINNY_BASE + "/getspinnysslonly");
