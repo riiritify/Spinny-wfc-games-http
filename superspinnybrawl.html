@@ -618,24 +618,23 @@ async function connectSpinnyWFC() {
     if (!ok) return;
 
     try {
-        // OPTIONS
+        // FIREWALL OPTIONS
         await fetch(SPINNY_BASE + "/spinnyauth/spinnyssl/spinnyfirewall/login", {
             method: "OPTIONS"
         });
 
-        // POST (403 expected)
+        // FIREWALL POST (403 expected)
         await fetch(SPINNY_BASE + "/spinnyauth/spinnyssl/spinnyfirewall/login", {
             method: "POST"
         });
 
         // TOKEN
         function spinnyUUID() {
-    const arr = new Uint8Array(16);
-    crypto.getRandomValues(arr);
-    return Array.from(arr, b => b.toString(16).padStart(2, "0")).join("");
-}
-
-const token = spinnyUUID();
+            const arr = new Uint8Array(16);
+            crypto.getRandomValues(arr);
+            return Array.from(arr, b => b.toString(16).padStart(2, "0")).join("");
+        }
+        const token = spinnyUUID();
 
         const tokRes = await fetch(SPINNY_BASE + "/spinnyauth/spinnyfirewall/token", {
             method: "POST",
@@ -645,11 +644,11 @@ const token = spinnyUUID();
         const tokText = await tokRes.text();
         if (!tokText.includes("tokenaccepted")) throw new Error("token");
 
-        // SERVER LIST
-const srvRes = await fetch(SPINNY_BASE + "/getspinnywfcservers", {
-    method: "POST"
-});
-
+        // SERVER LIST (POST)
+        const srvRes = await fetch(SPINNY_BASE + "/getspinnywfcservers", {
+            method: "POST"
+        });
+        if (!srvRes.ok) throw new Error("servers");
 
         // SSL CHECK
         const sslRes = await fetch(SPINNY_BASE + "/getspinnysslonly");
@@ -661,14 +660,25 @@ const srvRes = await fetch(SPINNY_BASE + "/getspinnywfcservers", {
         });
         if (!connRes.ok) throw new Error("conntest");
 
-        // LOGIN
-        const name = prompt("Enter your SpinnyWFC name:", "Player") || "Player";
-        const loginRes = await fetch(SPINNY_BASE + "/spinnycommunity/login", {
-            method: "POST",
-            headers: {"Content-Type": "application/x-www-form-urlencoded"},
-            body: "username=" + encodeURIComponent(name)
+        // -----------------------------
+        // ONE‑TIME USERNAME PER IP
+        // -----------------------------
+        let loginRes = await fetch(SPINNY_BASE + "/spinnycommunity/login", {
+            method: "POST"
         });
-        const loginText = await loginRes.text();
+        let loginText = await loginRes.text();
+
+        if (loginText === "needusername") {
+            const name = prompt("Enter your SpinnyWFC name:", "Player") || "Player";
+
+            loginRes = await fetch(SPINNY_BASE + "/spinnycommunity/login", {
+                method: "POST",
+                headers: {"Content-Type": "application/x-www-form-urlencoded"},
+                body: "username=" + encodeURIComponent(name)
+            });
+            loginText = await loginRes.text();
+        }
+
         if (!loginText.startsWith("session=")) throw new Error("login");
 
         spinnySession = loginText.split("=")[1];
@@ -681,6 +691,7 @@ const srvRes = await fetch(SPINNY_BASE + "/getspinnywfcservers", {
         show91010();
     }
 }
+
 
 /* ============================================================
    GAMESTATS
